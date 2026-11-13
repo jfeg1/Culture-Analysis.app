@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Culture Analysis</title>
+<style>
+:root{--navy:#1f3864;--ink:#1d2433;--muted:#5b6475;--line:#d5dbe6;--bg:#f5f7fa;--card:#fff;--soft:#e8edf5;--good:#1b6e45;--goodbg:#e2f3ea;--bad:#9b2c2c;--badbg:#fbe9e9;--warn:#8a5a00;--warnbg:#fdf2d8}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header.top{background:var(--navy);color:#fff;padding:10px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.brand strong{font-size:17px}.brand span{opacity:.8;margin-left:10px;font-size:14px}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:6px 12px;border-radius:6px;cursor:pointer}
+button:hover{background:var(--soft)}
+button:disabled{opacity:.5;cursor:default}
+button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}button.primary:hover{background:#2c4c85}
+button.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}button.ghost:hover{background:rgba(255,255,255,.12)}
+button.del{color:var(--bad);border-color:transparent;background:transparent;padding:4px 8px}
+button.small{padding:3px 9px;font-size:13px}
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 12px;display:flex;flex-wrap:wrap}
+nav button{border:0;border-bottom:3px solid transparent;border-radius:0;padding:11px 12px;background:none;color:var(--muted)}
+nav button.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+nav button .n{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:var(--soft);font-size:12px;margin-right:6px;color:var(--navy)}
+main{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+h1{font-size:22px;margin:0 0 4px;color:var(--navy)}h2{font-size:17px;margin:26px 0 8px;color:var(--navy)}
+p.lead{color:var(--muted);margin:0 0 16px;max-width:75ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],textarea,select{font:inherit;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:38px}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--navy);color:#fff;font-size:13px;font-weight:600}
+td.num,th.num{text-align:center;width:54px;white-space:nowrap}
+td.c,th.c{text-align:center}
+tr.grp td{background:var(--soft);font-weight:600;color:var(--navy)}
+.scroll{overflow-x:auto}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-good{background:var(--goodbg);color:var(--good)}.b-bad{background:var(--badbg);color:var(--bad)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-mute{background:var(--soft);color:var(--muted)}
+.hint{font-size:13px;color:var(--muted)}
+.scales{background:var(--soft);border-radius:6px;padding:8px 12px;font-size:13px;margin:10px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.banner{background:var(--warnbg);color:var(--warn);border:1px solid #ecd79b;border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.dist{display:flex;gap:3px;align-items:flex-end;height:30px}
+.dist i{display:block;width:14px;background:var(--navy);border-radius:2px 2px 0 0;min-height:1px}
+.dist span{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--muted);justify-content:flex-end;height:100%}
+.big{font-size:34px;font-weight:700;color:var(--navy);line-height:1.1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{background:var(--soft);border-radius:14px;padding:3px 6px 3px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.chip b{color:var(--navy)}
+#modal{position:fixed;inset:0;background:rgba(20,28,45,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:9}
+#modal.show{display:flex}#modal .box{background:#fff;border-radius:10px;padding:20px;max-width:640px;width:100%;max-height:90vh;overflow:auto}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 16px;border-radius:20px;display:none;z-index:10}
+footer{max-width:1080px;margin:0 auto;padding:0 20px 30px;font-size:12px;color:var(--muted)}
+@media print{.no-print{display:none!important}body{background:#fff;font-size:11pt}main{max-width:none;padding:0}.card{border:0;padding:0}
+ th{background:#ddd!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}input,select,textarea{border:0!important;padding:0!important;appearance:none;-webkit-appearance:none}h2{break-after:avoid}tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top no-print">
+  <div class="brand"><strong>Open Culture Analysis</strong><span id="teamName"></span></div>
+  <div class="tools">
+    <button class="ghost" data-act="saveFile">Save file</button>
+    <button class="ghost" data-act="openFile">Open file</button>
+    <button class="ghost" data-act="example">Load example</button>
+    <button class="ghost" data-act="newProject">New</button>
+  </div>
+</header>
+<nav id="nav" class="no-print"></nav>
+<main id="main"></main>
+<footer class="no-print">Free and open source (MIT). Method adapted from cultural consensus analysis and cultural consonance in cognitive anthropology. Your data stays in this browser and in the files you save; nothing is sent anywhere. The agreement rules and score bands are working values that have not been validated. This tool supports a structured conversation; it is not a selection test and does not replace professional or legal advice.</footer>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="modal"><div class="box" id="modalBox"></div></div>
+<div id="toast"></div>
+<script>
+/*CORE-START*/
+var Core = (function () {
+  var GROUP_SCALE = ['Not at all true here', 'Slightly true here', 'Moderately true here', 'Mostly true here', 'Completely true here'];
+  var SELF_SCALE = ['Not at all true of me', 'Slightly true of me', 'Moderately true of me', 'Mostly true of me', 'Completely true of me'];
+  var GROUPS = ['Make', 'Habits', 'Communication', 'Customs', 'Norms', 'Values', 'Mission', 'Vision'];
+  var PROMPTS = [
+    { id: 'make1', element: 'What You Make', group: 'Make', q: 'What do we make or provide, and for whom?' },
+    { id: 'make2', element: 'What You Make', group: 'Make', q: 'What would our customers lose if we disappeared tomorrow?' },
+    { id: 'habits', element: 'What You Do: habits', group: 'Habits', q: 'What does a normal working day here look like? List the routines.' },
+    { id: 'comm', element: 'What You Do: communication', group: 'Communication', q: 'How do people here share information, disagree and joke?' },
+    { id: 'customs', element: 'What You Do: customs', group: 'Customs', q: 'What do we celebrate or mark, and how?' },
+    { id: 'norms', element: 'What You Think: norms', group: 'Norms', q: 'What would a new person get wrong in their first month?' },
+    { id: 'values', element: 'What You Think: values', group: 'Values', q: 'What do people here care about most when a decision is hard?' },
+    { id: 'mission', element: 'What You Think: mission', group: 'Mission', q: 'Why does this company exist?' },
+    { id: 'vision', element: 'What You Think: vision', group: 'Vision', q: 'What are we trying to become in the next three to ten years?' },
+    { id: 'evidence', element: 'Evidence', group: 'Habits', q: 'Name three documents, tools or objects a stranger could examine to understand us.' }
+  ];
+  // [code, group, statement about the team ("Around here..."), personal version ('' when the item is a fact about the company)]
+  var STARTER = [
+    ['M1', 'Make', 'People could describe our main customer in one sentence.', ''],
+    ['M2', 'Make', 'We ship something early and improve it, in preference to waiting until it is polished.', 'I ship something early and improve it, in preference to waiting until it is polished.'],
+    ['M3', 'Make', 'What we build is driven more by what customers ask for than by what we believe they need.', ''],
+    ['H1', 'Habits', 'Most people start and finish work at roughly the same times.', 'I prefer to start and finish work at roughly the same times as my colleagues.'],
+    ['H2', 'Habits', 'The working day is organised around scheduled meetings.', 'I like my working day organised around scheduled meetings.'],
+    ['H3', 'Habits', 'People are expected to respond to messages outside working hours.', 'I am comfortable responding to messages outside working hours.'],
+    ['H4', 'Habits', 'People eat lunch together more often than alone.', 'I prefer to eat lunch with colleagues.'],
+    ['C1', 'Communication', 'Decisions are written down where everyone can find them.', 'I write decisions down where others can find them.'],
+    ['C2', 'Communication', 'People disagree openly with someone more senior in front of others.', 'I disagree openly with someone more senior in front of others.'],
+    ['C3', 'Communication', 'Joking and banter are a normal part of working conversations.', 'I enjoy joking and banter in working conversations.'],
+    ['C4', 'Communication', 'Important conversations happen face to face or on a call, not in writing.', 'I prefer important conversations face to face or on a call, not in writing.'],
+    ['R1', 'Customs', 'We mark wins as a group, however small.', 'I like marking wins as a group, however small.'],
+    ['R2', 'Customs', 'The team socialises together outside work.', 'I like to socialise with colleagues outside work.'],
+    ['R3', 'Customs', 'New people are welcomed with a routine everyone recognises.', ''],
+    ['N1', 'Norms', 'People ask for help before they have been stuck for long.', 'I ask for help before I have been stuck for long.'],
+    ['N2', 'Norms', 'People admit mistakes quickly.', 'I admit mistakes quickly.'],
+    ['N3', 'Norms', 'People take on work outside their job description without being asked.', 'I take on work outside my job description without being asked.'],
+    ['N4', 'Norms', 'Deadlines are treated as fixed commitments.', 'I treat deadlines as fixed commitments.'],
+    ['V1', 'Values', 'When speed and quality conflict, speed wins.', 'When speed and quality conflict, I choose speed.'],
+    ['V2', 'Values', 'When a rule and a good outcome conflict, people bend the rule.', 'When a rule and a good outcome conflict, I bend the rule.'],
+    ['V3', 'Values', 'Loyalty to teammates counts for more than individual results.', 'Loyalty to teammates matters more to me than individual results.'],
+    ['V4', 'Values', 'Being candid matters more than being comfortable.', 'Being candid matters more to me than being comfortable.'],
+    ['P1', 'Mission', 'Everyone would give the same answer to "why does this company exist?"', ''],
+    ['P2', 'Mission', 'Day-to-day decisions are checked against our purpose.', ''],
+    ['F1', 'Vision', 'People could say where the company aims to be in five years.', ''],
+    ['F2', 'Vision', 'People expect the company to look very different in three years.', '']
+  ];
+  // Working values, not validated cut-offs. All adjustable at the Team step.
+  var DEFAULTS = { agreePct: 80, splitShare: 25, lowMax: 50, midMin: 40, midMax: 75, highMin: 65 };
+  var DECISIONS = { accept: 'Accept an answer', reword: 'Reword and re-rate', none: 'No shared view', groups: 'Differs between groups' };
+
+  function rid() { return Math.random().toString(36).slice(2, 10); }
+  function starterItems() { return STARTER.map(function (s) { return { id: s[0].toLowerCase(), code: s[0], group: s[1], text: s[2], self: s[3], source: 'starter' }; }); }
+  function blank() {
+    return { kind: 'oca-project', version: 1, id: rid(), team: { name: '', facilitator: '', date: '', notes: '' },
+      items: starterItems(), respondents: [], workshop: {}, people: [], settings: Object.assign({}, DEFAULTS), seq: 1 };
+  }
+  function normalize(p) {
+    var b = blank(), hadItems = p && Array.isArray(p.items);
+    p = Object.assign(b, p || {});
+    if (!hadItems) p.items = starterItems();
+    p.team = Object.assign({ name: '', facilitator: '', date: '', notes: '' }, p.team || {});
+    p.settings = Object.assign({}, DEFAULTS, p.settings || {});
+    p.workshop = p.workshop || {};
+    p.respondents = (p.respondents || []).map(function (r) { r.free = r.free || {}; r.ratings = r.ratings || {}; return r; });
+    p.people = (p.people || []).map(function (r) { r.ratings = r.ratings || {}; return r; });
+    return p;
+  }
+  function isNum(x) { return typeof x === 'number' && !isNaN(x); }
+  function median(vals) {
+    var v = vals.filter(isNum).slice().sort(function (a, b) { return a - b; });
+    if (!v.length) return null;
+    var m = Math.floor(v.length / 2);
+    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+  }
+  // Sort an item's ratings into Agreed / Split / Scattered.
+  // Split is checked first: a gap of two or more points between neighbouring ratings, with at least
+  // splitShare% of the ratings on each side. Otherwise Agreed when at least agreePct% of ratings fall
+  // within one point of the median; anything else is Scattered. Fewer than two ratings: Too few.
+  function classify(ratings, settings) {
+    var s = Object.assign({}, DEFAULTS, settings || {});
+    var r = ratings.filter(isNum).slice().sort(function (a, b) { return a - b; }), n = r.length;
+    var med = median(r);
+    var within = r.filter(function (x) { return Math.abs(x - med) <= 1; }).length;
+    var pct = n ? within / n * 100 : null;
+    if (n < 2) return { group: 'Too few', median: med, withinPct: pct, n: n };
+    for (var i = 1; i < n; i++) {
+      if (r[i] - r[i - 1] >= 2 && i / n * 100 >= s.splitShare && (n - i) / n * 100 >= s.splitShare) return { group: 'Split', median: med, withinPct: pct, n: n };
+    }
+    return { group: pct >= s.agreePct ? 'Agreed' : 'Scattered', median: med, withinPct: pct, n: n };
+  }
+  function itemRatings(p, item) { return p.respondents.map(function (r) { return r.ratings && r.ratings[item.id]; }).filter(isNum); }
+  function itemStats(p, item) {
+    var r = itemRatings(p, item), c = classify(r, p.settings), counts = [0, 0, 0, 0, 0];
+    r.forEach(function (x) { if (x >= 1 && x <= 5) counts[Math.round(x) - 1]++; });
+    return { id: item.id, n: c.n, median: c.median, withinPct: c.withinPct, group: c.group, counts: counts };
+  }
+  function ws(p, id) { return (p.workshop && p.workshop[id]) || {}; }
+  // The team's answer for an item: the figure set in the workshop, else the median rating.
+  function teamAnswer(p, item) { var w = ws(p, item.id); return isNum(w.answer) ? w.answer : median(itemRatings(p, item)); }
+  function accepted(p, item) { return ws(p, item.id).decision === 'accept'; }
+  // Items that go into Form 4: accepted, selected, with a personal version and a team answer.
+  function form4Items(p) {
+    return p.items.filter(function (it) { return accepted(p, it) && ws(p, it.id).form4 && it.self && it.self.trim() && teamAnswer(p, it) !== null; });
+  }
+  function bandsFor(pct, settings) {
+    var s = Object.assign({}, DEFAULTS, settings || {}), b = [];
+    if (pct === null) return b;
+    if (pct < s.lowMax) b.push('Low');
+    if (pct >= s.midMin && pct <= s.midMax) b.push('Mid');
+    if (pct > s.highMin) b.push('High');
+    return b;
+  }
+  // Closeness of one person's preferences to the team's answers.
+  // Per item: gap = |person - team| (0 to 4); closeness = 4 - gap. Score = sum of closeness / (4 x items) x 100.
+  function consonance(p, person) {
+    var items = form4Items(p), gaps = [], missing = 0;
+    items.forEach(function (it) {
+      var v = person && person.ratings && person.ratings[it.id];
+      if (!isNum(v)) { missing++; return; }
+      var t = teamAnswer(p, it);
+      gaps.push({ id: it.id, code: it.code, self: it.self, team: t, person: v, gap: Math.abs(v - t) });
+    });
+    var n = gaps.length, total = gaps.reduce(function (a, g) { return a + (4 - g.gap); }, 0);
+    var pct = n ? total / (4 * n) * 100 : null;
+    gaps.sort(function (a, b) { return b.gap - a.gap; });
+    return { n: n, items: items.length, missing: missing, total: total, max: 4 * n, pct: pct, bands: bandsFor(pct, p.settings), gaps: gaps };
+  }
+  function phrases(text) { return String(text || '').split(/\n|;/).map(function (s) { return s.trim().replace(/\s+/g, ' '); }).filter(Boolean); }
+  // How many respondents listed each phrase, per prompt (case-insensitive).
+  function freeTally(p) {
+    var out = {};
+    PROMPTS.forEach(function (pr) {
+      var seen = {};
+      p.respondents.forEach(function (r) {
+        var mine = {};
+        phrases(r.free && r.free[pr.id]).forEach(function (ph) { var k = ph.toLowerCase(); if (!mine[k]) { mine[k] = 1; seen[k] = seen[k] || { phrase: ph, count: 0 }; seen[k].count++; } });
+      });
+      out[pr.id] = Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (a, b) { return b.count - a.count || a.phrase.localeCompare(b.phrase); });
+    });
+    return out;
+  }
+  function addItem(p, group, text, source) {
+    var it = { id: 'a' + p.seq, code: 'A' + p.seq, group: group || 'Habits', text: text || '', self: '', source: source || 'added' };
+    p.seq++; p.items.push(it); return it;
+  }
+  // File for one team member. Round 1 = free lists only; round 2 = the questionnaire. Never carries anyone else's answers.
+  function respondentPacket(p, id, round) {
+    var r = p.respondents.filter(function (x) { return x.id === id; })[0];
+    if (!r) return null;
+    return { kind: 'oca-project', version: 1, mode: 'respondent', round: round, id: p.id, team: { name: p.team.name },
+      items: round === 2 ? p.items.map(function (it) { return { id: it.id, code: it.code, group: it.group, text: it.text }; }) : [],
+      respondents: [{ id: r.id, name: r.name, free: Object.assign({}, r.free), ratings: Object.assign({}, r.ratings) }] };
+  }
+  function respondentResponse(p) { return { kind: 'oca-response', projectId: p.id, round: p.round, respondent: p.respondents[0] }; }
+  function mergeResponse(p, resp) {
+    if (!resp || resp.kind !== 'oca-response' || resp.projectId !== p.id || !resp.respondent) return false;
+    var r = p.respondents.filter(function (x) { return x.id === resp.respondent.id; })[0];
+    if (!r) return false;
+    if (resp.round === 2) Object.assign(r.ratings, resp.respondent.ratings || {}); else Object.assign(r.free, resp.respondent.free || {});
+    return true;
+  }
+  // File for a candidate or new hire: personal statements only. No team answers, no team wording.
+  function personPacket(p, id) {
+    var r = p.people.filter(function (x) { return x.id === id; })[0];
+    if (!r) return null;
+    return { kind: 'oca-project', version: 1, mode: 'person', id: p.id, team: { name: p.team.name },
+      items: form4Items(p).map(function (it) { return { id: it.id, self: it.self }; }),
+      people: [{ id: r.id, name: r.name, ratings: Object.assign({}, r.ratings) }] };
+  }
+  function personResponse(p) { return { kind: 'oca-person-response', projectId: p.id, person: p.people[0] }; }
+  function mergePerson(p, resp) {
+    if (!resp || resp.kind !== 'oca-person-response' || resp.projectId !== p.id || !resp.person) return false;
+    var r = p.people.filter(function (x) { return x.id === resp.person.id; })[0];
+    if (!r) return false;
+    Object.assign(r.ratings, resp.person.ratings || {});
+    return true;
+  }
+  return { GROUP_SCALE: GROUP_SCALE, SELF_SCALE: SELF_SCALE, GROUPS: GROUPS, PROMPTS: PROMPTS, STARTER: STARTER, DEFAULTS: DEFAULTS, DECISIONS: DECISIONS,
+    rid: rid, blank: blank, normalize: normalize, isNum: isNum, median: median, classify: classify, itemStats: itemStats, teamAnswer: teamAnswer,
+    accepted: accepted, form4Items: form4Items, bandsFor: bandsFor, consonance: consonance, phrases: phrases, freeTally: freeTally, addItem: addItem,
+    respondentPacket: respondentPacket, respondentResponse: respondentResponse, mergeResponse: mergeResponse,
+    personPacket: personPacket, personResponse: personResponse, mergePerson: mergePerson };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+/*CORE-END*/
+
+/*EXAMPLE-START*/
+function exampleProject() {
+  var p = Core.blank();
+  p.team = { name: 'Lumen Labs (example)', facilitator: 'Operations lead', date: '2026-11-13', notes: 'Fictional data to show a completed analysis.' };
+  var names = ['Founder A', 'Founder B', 'Engineer', 'Designer', 'Sales lead', 'Support lead'];
+  var lists = {
+    habits: ['morning stand-up', 'ship on Fridays', 'late starts'], comm: ['everything in the wiki', 'blunt feedback', 'memes'],
+    customs: ['demo day', 'Friday drinks'], norms: ['ask early', 'own your mistakes'], values: ['speed', 'candour', 'customers first']
+  };
+  names.forEach(function (name, r) {
+    var R = { id: 'r' + (r + 1), name: name, free: {}, ratings: {} };
+    Object.keys(lists).forEach(function (k) { R.free[k] = lists[k].filter(function (x, i) { return (i + r) % 3 !== 2; }).join('\n'); });
+    p.items.forEach(function (it, i) {
+      var kind = i % 5, base = 2 + (i % 3) + (i % 2), v;
+      if (kind === 3) v = r < 3 ? 2 : 4 + (r % 2);            // two clusters
+      else if (kind === 4) v = [1, 2, 3, 4, 5, 3][(r + i) % 6]; // spread across the scale
+      else v = base + ((r + i) % 4 === 0 ? -1 : 0);           // close agreement
+      R.ratings[it.id] = Math.max(1, Math.min(5, v));
+    });
+    p.respondents.push(R);
+  });
+  var free = Core.addItem(p, 'Customs', 'We show unfinished work to the whole team at a regular demo day.', 'free list');
+  free.self = 'I am comfortable showing unfinished work to a whole team.';
+  p.respondents.forEach(function (R, r) { R.ratings[free.id] = r === 4 ? 3 : 4; });
+  p.items.forEach(function (it) {
+    var st = Core.itemStats(p, it);
+    if (st.group === 'Agreed') p.workshop[it.id] = { decision: 'accept', form4: !!it.self, keep: 'keep', evidence: '', notes: '' };
+    else if (st.group === 'Split') p.workshop[it.id] = { decision: 'groups', notes: 'Founders rate this lower than later joiners.' };
+    else p.workshop[it.id] = { decision: 'none', notes: 'Wording was read in different ways.' };
+  });
+  p.workshop[free.id].evidence = 'Demo day calendar invite and recordings';
+  var cand = { id: 'p1', name: 'Candidate 1', role: 'Candidate', ratings: {} };
+  Core.form4Items(p).forEach(function (it, i) { var t = Core.teamAnswer(p, it); cand.ratings[it.id] = Math.max(1, Math.min(5, Math.round(t) + [0, 1, 0, -2, 0, 1][i % 6])); });
+  p.people.push(cand);
+  return p;
+}
+/*EXAMPLE-END*/
+
+if (typeof document !== 'undefined') (function () {
+  var KEY = 'oca-project', PKEY = 'oca-packet';
+  var p = null, state = { view: 'team', respId: null, personId: null };
+  var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(x) { return x === null || x === undefined ? '–' : (Math.round(x * 10) / 10).toString(); }
+  function pc(x) { return x === null || x === undefined ? '–' : Math.round(x) + '%'; }
+  function store() { try { localStorage.setItem(p.mode ? PKEY : KEY, JSON.stringify(p)); if (!p.mode) localStorage.removeItem(PKEY); } catch (e) {} }
+  function load() { try { var s = localStorage.getItem(PKEY) || localStorage.getItem(KEY); return s ? Core.normalize(JSON.parse(s)) : null; } catch (e) { return null; } }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { t.style.display = 'none'; }, 2600); }
+  function modal(html) { $('modalBox').innerHTML = html; $('modal').classList.add('show'); }
+  function closeModal() { $('modal').classList.remove('show'); }
+  var pendingYes = null;
+  function confirmBox(msg, yes) { pendingYes = yes; modal('<p>' + esc(msg) + '</p><div class="row" style="justify-content:flex-end"><button data-act="closeModal">Cancel</button><button class="primary" data-act="confirmYes">Yes, continue</button></div>'); }
+  function slug(s) { return (s || 'culture-analysis').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'culture-analysis'; }
+  function exportFile(name, text, mime) {
+    if (framed) { modal('<h2 style="margin-top:0">' + esc(name) + '</h2><p class="hint">This preview cannot download files. Copy the text below and save it as <b>' + esc(name) + '</b>, or use the downloaded version of the app.</p><textarea id="exportText" style="height:240px;font:12px monospace" readonly>' + esc(text) + '</textarea><div class="row" style="justify-content:flex-end;margin-top:10px"><button data-act="copyExport">Copy</button><button class="primary" data-act="closeModal">Close</button></div>'); return; }
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: mime })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
+  function curResp() { var r = byId(p.respondents, state.respId) || p.respondents[0]; state.respId = r ? r.id : null; return r; }
+  function curPerson() { var r = byId(p.people, state.personId) || p.people[0]; state.personId = r ? r.id : null; return r; }
+  function need(msg) { return '<div class="card"><p>' + msg + '</p></div>'; }
+  function groupBadge(g) { var c = { Agreed: 'b-good', Split: 'b-warn', Scattered: 'b-bad', 'Too few': 'b-mute' }[g] || 'b-mute'; return '<span class="badge ' + c + '">' + esc(g) + '</span>'; }
+  function scaleBox(opts) { return '<div class="scales"><b>Scale.</b> ' + opts.map(function (o, i) { return (i + 1) + ' = ' + esc(o); }).join(' &nbsp;·&nbsp; ') + '</div>'; }
+  function rateSel(attr, key, val, opts, label) {
+    return '<select ' + attr + '="' + key + '" aria-label="' + esc(label) + '" style="min-width:64px"><option value="">–</option>' + opts.map(function (o, i) { return '<option value="' + (i + 1) + '"' + (val === i + 1 ? ' selected' : '') + ' title="' + esc(o) + '">' + (i + 1) + '</option>'; }).join('') + '</select>';
+  }
+  function byGroup(items, rowFn, cols) {
+    var html = '';
+    Core.GROUPS.concat(['Other']).forEach(function (g) {
+      var list = items.filter(function (it) { return g === 'Other' ? Core.GROUPS.indexOf(it.group) < 0 : it.group === g; });
+      if (!list.length) return;
+      html += '<tr class="grp"><td colspan="' + cols + '">' + esc(g) + '</td></tr>' + list.map(rowFn).join('');
+    });
+    return html;
+  }
+  function field(label, key, val, type) { return '<div><label>' + label + '</label><input type="' + (type || 'text') + '" data-team="' + key + '" value="' + esc(val) + '"></div>'; }
+  function setField(label, key, hint) { return '<div><label>' + label + '</label><input type="number" min="0" max="100" step="1" data-set="' + key + '" value="' + esc(p.settings[key]) + '"><span class="hint">' + hint + '</span></div>'; }
+  function picker(kind, list, cur, label) {
+    return '<div class="card no-print"><div class="row"><label style="margin:0">' + label + '</label><select data-pick="' + kind + '" style="width:auto">' + list.map(function (r, i) { return '<option value="' + r.id + '"' + (r.id === cur ? ' selected' : '') + '>' + esc(r.name || 'Person ' + (i + 1)) + '</option>'; }).join('') + '</select><span class="hint" id="progress"></span></div></div>';
+  }
+  function freeDone(r) { return Core.PROMPTS.filter(function (pr) { return Core.phrases(r.free[pr.id]).length; }).length; }
+  function rateDone(r) { return p.items.filter(function (it) { return Core.isNum(r.ratings[it.id]); }).length; }
+
+  /* ---------- views ---------- */
+  var V = {};
+  V.team = function () {
+    return '<h1>Team</h1><p class="lead">A culture analysis documents how a team actually works, in three parts: what you make, what you do and what you think. Everyone on the team takes part, working alone first and together afterwards.</p>' +
+      '<div class="card"><div class="grid2">' + field('Team or company', 'name', p.team.name) + field('Facilitator', 'facilitator', p.team.facilitator) + field('Date', 'date', p.team.date, 'date') + '<div><label>Notes</label><textarea data-team="notes">' + esc(p.team.notes) + '</textarea></div></div></div>' +
+      '<h2>How it works</h2><div class="card"><ol style="margin:0;padding-left:20px"><li><b>Respondents.</b> Add everyone on the team.</li><li><b>Free lists.</b> Each person lists the words they associate with each part of the culture.</li><li><b>Items.</b> Build the questionnaire from the starter items and the team\'s own phrases.</li><li><b>Ratings.</b> Each person rates how true each statement is of the team today.</li><li><b>Agreement.</b> See where the team agrees, splits or scatters.</li><li><b>Workshop.</b> Debate the differences and record the team\'s answers.</li><li><b>Consonance.</b> Compare one person\'s preferences with the team\'s answers.</li><li><b>Report.</b> Print the documented culture model.</li></ol><p class="hint" style="margin-bottom:0">One rule applies throughout: describe the team as it is today, not as it should be.</p></div>' +
+      '<h2>Working rules</h2><p class="hint">These values are adjustable. They are working rules that have not been validated; revise them after you have tried the process.</p><div class="card"><div class="grid3">' +
+      setField('Agreed: % within one point of the median', 'agreePct', 'Default 80') + setField('Split: minimum % in each cluster', 'splitShare', 'Default 25') + '<div></div>' +
+      setField('Low band: below %', 'lowMax', 'Default 50') + setField('Mid band: from %', 'midMin', 'Default 40') + setField('Mid band: to %', 'midMax', 'Default 75') +
+      setField('High band: above %', 'highMin', 'Default 65') + '</div><p class="hint" style="margin-bottom:0">The bands overlap on purpose. A score in an overlap can be read as either band.</p></div>';
+  };
+  V.people = function () {
+    var rows = p.respondents.map(function (r, i) {
+      return '<tr><td class="num">' + (i + 1) + '</td><td><input type="text" data-name="resp:' + r.id + '" value="' + esc(r.name) + '" placeholder="Name or initials"></td><td class="c">' + freeDone(r) + ' of ' + Core.PROMPTS.length + '</td><td class="c">' + rateDone(r) + ' of ' + p.items.length + '</td>' +
+        '<td class="no-print"><div class="row"><button class="small" data-act="packet" data-id="' + r.id + '" data-round="1">Save free-list file</button><button class="small" data-act="packet" data-id="' + r.id + '" data-round="2">Save ratings file</button><button class="del" data-act="delResp" data-id="' + r.id + '" aria-label="Remove">✕</button></div></td></tr>';
+    }).join('');
+    return '<h1>Respondents</h1><p class="lead">Add everyone on the team, not only the founders. Each person answers alone. The differences between their answers are the material for the workshop.</p>' +
+      '<div class="scroll"><table><tr><th class="num">#</th><th>Name</th><th class="c">Free lists</th><th class="c">Ratings</th><th class="no-print">Send a file</th></tr>' + (rows || '<tr><td colspan="5" class="hint">No one added yet.</td></tr>') + '</table></div>' +
+      '<p class="no-print"><button class="primary" data-act="addResp">Add a person</button></p>' +
+      '<div class="card"><b>Collecting answers</b><p class="hint" style="margin-bottom:0"><b>Send files.</b> Save a file for each person and send it to them. They open it in this app, answer, and send back the file they save. Use <b>Open file</b> to add their answers. A file never contains anyone else\'s answers. Send the free-list file first; send the ratings file once the items are final.<br><b>Or enter answers yourself</b> at the Free lists and Ratings steps, from paper forms or interviews.</p></div>';
+  };
+  function freeForm(r) {
+    return '<div class="scroll"><table><tr><th style="width:22%">Element</th><th style="width:38%">Prompt</th><th>Your list (one word or phrase per line)</th></tr>' + Core.PROMPTS.map(function (pr) {
+      return '<tr><td>' + esc(pr.element) + '</td><td>' + esc(pr.q) + '</td><td><textarea rows="3" data-free="' + r.id + ':' + pr.id + '" aria-label="' + esc(pr.q) + '">' + esc(r.free[pr.id] || '') + '</textarea></td></tr>';
+    }).join('') + '</table></div>';
+  }
+  var FREE_INTRO = 'For each prompt, write the first words or short phrases that come to mind. Sentences are not needed. Spend about two minutes per prompt, and do not confer with anyone.';
+  V.free = function () {
+    if (!p.respondents.length) return '<h1>Free lists</h1>' + need('Add the team at the <b>Respondents</b> step first.');
+    var r = curResp(), tally = Core.freeTally(p);
+    var t = Core.PROMPTS.map(function (pr) {
+      var list = tally[pr.id]; if (!list.length) return '';
+      return '<tr><td>' + esc(pr.element) + '</td><td><div class="chips">' + list.map(function (x) {
+        return '<span class="chip"><b>' + x.count + '</b> ' + esc(x.phrase) + ' <button class="small no-print" data-act="phraseItem" data-group="' + pr.group + '" data-phrase="' + esc(x.phrase) + '">Add as item</button></span>';
+      }).join('') + '</div></td></tr>';
+    }).join('');
+    return '<h1>Free lists</h1><p class="lead">This step collects the team\'s own vocabulary, which becomes the wording of the questionnaire. ' + FREE_INTRO + '</p>' +
+      picker('resp', p.respondents, r.id, 'Entering lists for') + freeForm(r) +
+      '<h2>Tally</h2><p class="hint">The number shows how many people listed each phrase. A phrase listed by two or more people is a candidate item. In a team of fewer than six, also keep any phrase one person feels strongly about.</p>' +
+      (t ? '<div class="scroll"><table><tr><th style="width:22%">Element</th><th>Phrases</th></tr>' + t + '</table></div>' : need('No phrases entered yet.'));
+  };
+  V.items = function () {
+    var row = function (it) {
+      return '<tr><td class="num">' + esc(it.code) + '</td><td><select data-item="' + it.id + ':group">' + Core.GROUPS.map(function (g) { return '<option' + (g === it.group ? ' selected' : '') + '>' + g + '</option>'; }).join('') + '</select></td>' +
+        '<td><textarea rows="2" data-item="' + it.id + ':text" aria-label="Statement ' + esc(it.code) + '">' + esc(it.text) + '</textarea></td><td><textarea rows="2" data-item="' + it.id + ':self" aria-label="Personal version ' + esc(it.code) + '" placeholder="Leave blank if this is a fact about the company">' + esc(it.self) + '</textarea></td>' +
+        '<td><span class="badge b-mute">' + esc(it.source) + '</span></td><td class="no-print"><button class="del" data-act="delItem" data-id="' + it.id + '" aria-label="Remove">✕</button></td></tr>';
+    };
+    return '<h1>Items</h1><p class="lead">These statements make up the questionnaire. Start from the starter items, add the team\'s own phrases from the free lists, and remove anything that plainly does not apply.</p>' +
+      '<div class="card"><b>Writing an item</b><p class="hint" style="margin-bottom:0">Each statement completes the phrase "Around here…". Use the team\'s own words. State one idea per item. Describe something observable, and word it so that neither a high nor a low rating is obviously the "good" answer. The personal version asks the same thing about one individual; it is used only at the Consonance step.</p></div>' +
+      '<div class="scroll"><table><tr><th class="num">Code</th><th style="width:130px">Element</th><th>Around here…</th><th>Personal version</th><th>Source</th><th class="no-print"></th></tr>' + byGroup(p.items, row, 6) + '</table></div>' +
+      '<p class="no-print"><button class="primary" data-act="addItem">Add an item</button> <span class="hint">' + p.items.length + ' items. Changing an item after ratings are collected means re-rating it.</span></p>';
+  };
+  function rateForm(r) {
+    var row = function (it) { return '<tr><td class="num">' + esc(it.code) + '</td><td>' + esc(it.text) + '</td><td class="c">' + rateSel('data-rate', r.id + ':' + it.id, r.ratings[it.id], Core.GROUP_SCALE, it.text) + '</td></tr>'; };
+    return scaleBox(Core.GROUP_SCALE) + '<div class="scroll"><table><tr><th class="num">Code</th><th>Around here…</th><th class="c" style="width:90px">Rating</th></tr>' + byGroup(p.items, row, 3) + '</table></div>';
+  }
+  var RATE_INTRO = 'Rate each statement for how true it is of this team today. Answer as you believe most people on the team would answer. Do not rate your own preference, and do not rate how things should be.';
+  V.rate = function () {
+    if (!p.respondents.length) return '<h1>Ratings</h1>' + need('Add the team at the <b>Respondents</b> step first.');
+    var r = curResp();
+    return '<h1>Ratings</h1><p class="lead">' + RATE_INTRO + '</p>' + picker('resp', p.respondents, r.id, 'Entering ratings for') + rateForm(r);
+  };
+  V.agree = function () {
+    var stats = p.items.map(function (it) { return Core.itemStats(p, it); }), by = {};
+    stats.forEach(function (s) { by[s.id] = s; });
+    if (!stats.some(function (s) { return s.n > 0; })) return '<h1>Agreement</h1>' + need('No ratings yet. Collect them at the <b>Ratings</b> step.');
+    var count = function (g) { return stats.filter(function (s) { return s.group === g; }).length; };
+    var maxN = Math.max.apply(null, stats.map(function (s) { return s.n; }).concat([1]));
+    var row = function (it) {
+      var s = by[it.id];
+      var dist = '<div class="dist">' + s.counts.map(function (c, i) { return '<span><i style="height:' + Math.round(c / maxN * 22) + 'px" title="' + c + ' rated ' + (i + 1) + '"></i>' + (i + 1) + '</span>'; }).join('') + '</div>';
+      return '<tr><td class="num">' + esc(it.code) + '</td><td>' + esc(it.text) + '</td><td class="num">' + s.n + '</td><td>' + dist + '</td><td class="num">' + fmt(s.median) + '</td><td class="num">' + pc(s.withinPct) + '</td><td class="c">' + groupBadge(s.group) + '</td></tr>';
+    };
+    return '<h1>Agreement</h1><p class="lead">Each item is sorted by how closely the team\'s ratings agree. Individual answers are not shown, only how many people chose each rating.</p>' +
+      (p.respondents.length < 10 ? '<div class="banner">With fewer than ten people, one person can move the median. Treat these results as a structured conversation, not a measurement.</div>' : '') +
+      '<div class="card"><div class="row">' + groupBadge('Agreed') + ' <b>' + count('Agreed') + '</b> &nbsp; ' + groupBadge('Split') + ' <b>' + count('Split') + '</b> &nbsp; ' + groupBadge('Scattered') + ' <b>' + count('Scattered') + '</b>' + (count('Too few') ? ' &nbsp; ' + groupBadge('Too few') + ' <b>' + count('Too few') + '</b>' : '') + '</div>' +
+      '<p class="hint" style="margin-bottom:0"><b>Split</b>: ratings form two clusters two or more points apart, with at least ' + p.settings.splitShare + '% of ratings in each. <b>Agreed</b>: at least ' + p.settings.agreePct + '% of ratings fall within one point of the median. <b>Scattered</b>: neither. Split is checked first.</p></div>' +
+      '<div class="scroll"><table><tr><th class="num">Code</th><th>Around here…</th><th class="num">n</th><th style="width:110px">Ratings</th><th class="num">Median</th><th class="num">Within 1</th><th class="c">Group</th></tr>' + byGroup(p.items, row, 7) + '</table></div>';
+  };
+  V.workshop = function () {
+    var any = p.items.some(function (it) { return Core.itemStats(p, it).n > 0; });
+    if (!any) return '<h1>Workshop</h1>' + need('No ratings yet. Collect them at the <b>Ratings</b> step.');
+    var n4 = Core.form4Items(p).length;
+    var row = function (it) {
+      var s = Core.itemStats(p, it), w = p.workshop[it.id] || {}, acc = w.decision === 'accept', can4 = acc && it.self && it.self.trim();
+      return '<tr><td class="num">' + esc(it.code) + '</td><td>' + esc(it.text) + '<br>' + groupBadge(s.group) + ' <span class="hint">median ' + fmt(s.median) + '</span></td>' +
+        '<td><select data-ws="' + it.id + ':decision" aria-label="Decision ' + esc(it.code) + '"><option value="">–</option>' + Object.keys(Core.DECISIONS).map(function (k) { return '<option value="' + k + '"' + (w.decision === k ? ' selected' : '') + '>' + Core.DECISIONS[k] + '</option>'; }).join('') + '</select>' +
+        (acc ? '<label style="margin-top:6px">Team answer</label><input type="number" min="1" max="5" step="0.5" data-ws="' + it.id + ':answer" value="' + (Core.isNum(w.answer) ? w.answer : '') + '" placeholder="' + fmt(s.median) + ' (median)">' : '') + '</td>' +
+        '<td><textarea rows="2" data-ws="' + it.id + ':notes" aria-label="What the debate showed ' + esc(it.code) + '">' + esc(w.notes || '') + '</textarea></td>' +
+        '<td><textarea rows="2" data-ws="' + it.id + ':evidence" aria-label="Evidence ' + esc(it.code) + '">' + esc(w.evidence || '') + '</textarea></td>' +
+        '<td><select data-ws="' + it.id + ':keep" aria-label="Keep or change ' + esc(it.code) + '"><option value="">–</option><option value="keep"' + (w.keep === 'keep' ? ' selected' : '') + '>Keep</option><option value="change"' + (w.keep === 'change' ? ' selected' : '') + '>Change</option></select></td>' +
+        '<td class="c"><input type="checkbox" data-f4="' + it.id + '"' + (w.form4 && can4 ? ' checked' : '') + (can4 ? '' : ' disabled') + ' aria-label="Include ' + esc(it.code) + ' in the consonance form"' + (can4 ? '' : ' title="Needs an accepted answer and a personal version"') + '></td></tr>';
+    };
+    return '<h1>Workshop</h1><p class="lead">Set aside a full day. The workshop turns individual ratings into one documented model, item by item. Disagreement is a finding to record, not a problem to smooth over.</p>' +
+      '<div class="card"><ol style="margin:0;padding-left:20px"><li>Present the Agreed items and confirm each one.</li><li>Take the Split and Scattered items in turn. Ask what each person had in mind when rating.</li><li>Decide each item: accept an answer, reword and re-rate, record "no shared view", or record a difference between groups.</li><li>For each accepted item, name one piece of evidence: a document, a routine or a tool that shows it in practice.</li><li>For each accepted item, mark whether the team wants to keep it or change it.</li><li>Select 12 to 17 accepted items for the consonance form. Choose items a person from outside can answer about themselves.</li></ol>' +
+      '<p class="hint" style="margin-bottom:0"><b>Prompts for the debate.</b> What specific moment were you thinking of when you rated this? Would people who joined in the last six months rate this differently from those who were here at the start? Is this true of the whole company, or of one team? If a candidate asked us about this, what would we tell them?</p></div>' +
+      '<p class="no-print row"><button data-act="acceptAgreed">Accept all Agreed items</button><span class="hint">' + n4 + ' item' + (n4 === 1 ? '' : 's') + ' selected for the consonance form (aim for 12 to 17).</span></p>' +
+      '<div class="scroll"><table><tr><th class="num">Code</th><th style="width:24%">Around here…</th><th style="width:190px">Decision</th><th>What the debate showed</th><th>Evidence</th><th style="width:96px">Keep or change</th><th class="c" style="width:70px">Form 4</th></tr>' + byGroup(p.items, row, 7) + '</table></div>';
+  };
+  function selfForm(r, items) {
+    return scaleBox(Core.SELF_SCALE) + '<div class="scroll"><table><tr><th class="num">#</th><th>Statement</th><th class="c" style="width:90px">Rating</th></tr>' + items.map(function (it, i) {
+      return '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(it.self) + '</td><td class="c">' + rateSel('data-prate', r.id + ':' + it.id, r.ratings[it.id], Core.SELF_SCALE, it.self) + '</td></tr>';
+    }).join('') + '</table></div>';
+  }
+  var SELF_INTRO = 'There are no right answers. Rate each statement for how true it is of you and how you prefer to work. Do not try to guess how this team works.';
+  V.fit = function () {
+    var items = Core.form4Items(p), head = '<h1>Consonance</h1><p class="lead">This step compares how one person prefers to work with the team\'s agreed answers. The score is a prompt for conversation, not a pass mark.</p>';
+    if (!items.length) return head + need('No items selected yet. At the <b>Workshop</b> step, accept items and tick <b>Form 4</b> for those to include.');
+    var limits = '<div class="banner"><b>Limits of use.</b> Nothing here has been shown to predict performance or retention; use it beside job-related criteria, never in place of them. Sameness is not the goal: decide in advance which items need closeness and which benefit from difference. Check items for unfair proxies, such as availability outside working hours or socialising outside work, before using this form with candidates. Take legal advice before using it in hiring.</div>';
+    var list = '<div class="scroll"><table><tr><th class="num">#</th><th>Name</th><th style="width:160px">Role</th><th class="c">Answered</th><th class="c">Closeness</th><th class="no-print"></th></tr>' + (p.people.map(function (r, i) {
+      var c = Core.consonance(p, r);
+      return '<tr><td class="num">' + (i + 1) + '</td><td><input type="text" data-name="person:' + r.id + '" value="' + esc(r.name) + '" placeholder="Name or reference"></td><td><select data-role="' + r.id + '">' + ['Candidate', 'New hire', 'Team member'].map(function (x) { return '<option' + (r.role === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td><td class="c">' + c.n + ' of ' + c.items + '</td><td class="c">' + pc(c.pct) + '</td>' +
+        '<td class="no-print"><div class="row"><button class="small" data-act="personPacket" data-id="' + r.id + '">Save file to send</button><button class="del" data-act="delPerson" data-id="' + r.id + '" aria-label="Remove">✕</button></div></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="hint">No one added yet.</td></tr>') + '</table></div><p class="no-print"><button class="primary" data-act="addPerson">Add a person</button> <span class="hint">A file you send contains the statements only. It never contains the team\'s answers.</span></p>';
+    if (!p.people.length) return head + limits + list;
+    var r = curPerson(), c = Core.consonance(p, r), res;
+    if (!c.n) res = need('No ratings entered for this person yet.');
+    else {
+      var top = c.gaps.slice(0, 4).filter(function (g) { return g.gap > 0; });
+      res = '<div class="card"><div class="row" style="gap:24px"><div><div class="big">' + pc(c.pct) + '</div><div class="hint">closeness on ' + c.n + ' item' + (c.n === 1 ? '' : 's') + (c.missing ? ' (' + c.missing + ' unanswered)' : '') + '</div></div><div>' + c.bands.map(function (b) { return '<span class="badge ' + ({ Low: 'b-bad', Mid: 'b-warn', High: 'b-good' }[b]) + '">' + b + '</span>'; }).join(' or ') +
+        '<div class="hint" style="margin-top:4px">' + (c.bands.length > 1 ? 'The score sits in an overlap and can be read as either band.' : 'Bands are provisional and overlap on purpose.') + '</div></div></div>' +
+        '<p class="hint">Per item, the gap is the distance between the person\'s rating and the team\'s answer (0 to 4). Closeness is 4 minus the gap. The score is total closeness, ' + fmt(c.total) + ' out of ' + c.max + '.</p>' +
+        (top.length ? '<b>Largest gaps</b><p class="hint" style="margin:2px 0 6px">These say more than the total. Discuss which of them matter for the role.</p><div class="scroll"><table><tr><th>Statement</th><th class="num">Person</th><th class="num">Team</th><th class="num">Gap</th></tr>' + top.map(function (g) { return '<tr><td>' + esc(g.self) + '</td><td class="num">' + g.person + '</td><td class="num">' + fmt(g.team) + '</td><td class="num">' + fmt(g.gap) + '</td></tr>'; }).join('') + '</table></div>' : '<p>No gaps: every answer matches the team\'s.</p>') + '</div>';
+    }
+    return head + limits + list + '<h2>Answers and result</h2>' + picker('person', p.people, r.id, 'Showing') + '<p class="hint">' + SELF_INTRO + '</p>' + selfForm(r, items) + res +
+      '<p class="no-print"><button data-act="print">Print this page</button></p>';
+  };
+  V.report = function () {
+    var acc = p.items.filter(function (it) { return Core.accepted(p, it); });
+    var other = function (k) { return p.items.filter(function (it) { return (p.workshop[it.id] || {}).decision === k; }); };
+    var label = function (v) { return v === null ? '' : Core.GROUP_SCALE[Math.max(1, Math.min(5, Math.round(v))) - 1]; };
+    var accRow = function (it) { var w = p.workshop[it.id] || {}, t = Core.teamAnswer(p, it); return '<tr><td class="num">' + esc(it.code) + '</td><td>' + esc(it.text) + '</td><td>' + fmt(t) + ' <span class="hint">' + esc(label(t)) + '</span></td><td>' + esc(w.evidence || '') + '</td><td>' + (w.keep === 'change' ? 'Change' : w.keep === 'keep' ? 'Keep' : '') + '</td></tr>'; };
+    var noteTable = function (list) { return '<div class="scroll"><table><tr><th class="num">Code</th><th>Around here…</th><th>What the debate showed</th></tr>' + list.map(function (it) { return '<tr><td class="num">' + esc(it.code) + '</td><td>' + esc(it.text) + '</td><td>' + esc((p.workshop[it.id] || {}).notes || '') + '</td></tr>'; }).join('') + '</table></div>'; };
+    var f4 = Core.form4Items(p);
+    if (!acc.length && !other('none').length && !other('groups').length) return '<h1>Report</h1>' + need('Nothing recorded yet. Record decisions at the <b>Workshop</b> step.');
+    return '<h1>Culture analysis' + (p.team.name ? ': ' + esc(p.team.name) : '') + '</h1><p class="lead">' + [p.team.date ? 'Date: ' + esc(p.team.date) : '', p.team.facilitator ? 'Facilitator: ' + esc(p.team.facilitator) : '', p.respondents.length + ' respondents', p.items.length + ' items rated'].filter(Boolean).join(' · ') + '</p>' +
+      '<p class="no-print"><button class="primary" data-act="print">Print or save as PDF</button></p>' + (p.team.notes ? '<p>' + esc(p.team.notes) + '</p>' : '') +
+      '<h2>How we work: the agreed model</h2>' + (acc.length ? '<div class="scroll"><table><tr><th class="num">Code</th><th>Around here…</th><th style="width:170px">Team answer</th><th>Evidence</th><th style="width:80px">Keep or change</th></tr>' + byGroup(acc, accRow, 5) + '</table></div>' : '<p class="hint">No items accepted.</p>') +
+      (other('groups').length ? '<h2>Where groups differ</h2>' + noteTable(other('groups')) : '') +
+      (other('none').length ? '<h2>No shared view</h2>' + noteTable(other('none')) : '') +
+      (other('reword').length ? '<h2>To reword and re-rate</h2>' + noteTable(other('reword')) : '') +
+      (f4.length ? '<h2>Consonance form (Form 4)</h2><p class="hint">' + SELF_INTRO + '</p><ol>' + f4.map(function (it) { return '<li>' + esc(it.self) + '</li>'; }).join('') + '</ol>' : '') +
+      '<h2>Method and limits</h2><p class="hint">Ratings were collected individually on a five-point scale from "' + Core.GROUP_SCALE[0] + '" to "' + Core.GROUP_SCALE[4] + '". The team answer is the median rating unless the workshop set a different figure. Agreement rules: Split when ratings form two clusters two or more points apart with at least ' + p.settings.splitShare + '% in each; Agreed when at least ' + p.settings.agreePct + '% fall within one point of the median. These are working rules that have not been validated. This record describes the team at the date above; repeat the analysis when the team doubles in size.</p>';
+  };
+  /* forms shown to someone who opened a file sent to them */
+  V.myfree = function () { var r = p.respondents[0]; return '<h1>Your lists</h1><p class="lead">' + FREE_INTRO + '</p>' + freeForm(r) + sendCard(); };
+  V.myrate = function () { var r = p.respondents[0]; return '<h1>Your ratings</h1><p class="lead">' + RATE_INTRO + '</p><p class="hint" id="progress"></p>' + rateForm(r) + sendCard(); };
+  V.myself = function () { var r = p.people[0]; return '<h1>How you prefer to work</h1><p class="lead">' + SELF_INTRO + '</p><p class="hint" id="progress"></p>' + selfForm(r, p.items) + sendCard(); };
+  function sendCard() { return '<div class="card no-print"><b>When you have finished</b><p class="hint">Save your answers as a file and send that file back to the person who sent you this one.</p><button class="primary" data-act="saveFile">Save my answers</button></div>'; }
+
+  function steps() {
+    if (p.mode === 'respondent') return p.round === 2 ? [['myrate', 'Your ratings']] : [['myfree', 'Your lists']];
+    if (p.mode === 'person') return [['myself', 'Your answers']];
+    return [['team', 'Team'], ['people', 'Respondents'], ['free', 'Free lists'], ['items', 'Items'], ['rate', 'Ratings'], ['agree', 'Agreement'], ['workshop', 'Workshop'], ['fit', 'Consonance'], ['report', 'Report']];
+  }
+  function progress() {
+    var el = $('progress'); if (!el) return;
+    if (state.view === 'rate' || state.view === 'myrate') { var r = p.mode ? p.respondents[0] : curResp(); el.textContent = rateDone(r) + ' of ' + p.items.length + ' rated'; }
+    else if (state.view === 'free') { el.textContent = freeDone(curResp()) + ' of ' + Core.PROMPTS.length + ' prompts answered'; }
+    else if (state.view === 'myself') { var q = p.people[0]; el.textContent = p.items.filter(function (it) { return Core.isNum(q.ratings[it.id]); }).length + ' of ' + p.items.length + ' rated'; }
+    else el.textContent = '';
+  }
+  function render() {
+    var s = steps();
+    if (!s.some(function (x) { return x[0] === state.view; })) state.view = s[0][0];
+    $('nav').innerHTML = s.map(function (x, i) { return '<button data-view="' + x[0] + '" class="' + (state.view === x[0] ? 'on' : '') + '"><span class="n">' + (i + 1) + '</span>' + x[1] + '</button>'; }).join('');
+    $('teamName').textContent = p.team.name || '';
+    var banner = p.mode ? '<div class="banner no-print">You are answering for <b>' + esc(p.team.name || 'your team') + '</b>' + (p.mode === 'respondent' && p.respondents[0].name ? ' as <b>' + esc(p.respondents[0].name) + '</b>' : '') + '. Your answers stay on this computer until you save and send the file.</div>' : '';
+    $('main').innerHTML = banner + V[state.view]();
+    progress();
+  }
+
+  /* ---------- actions ---------- */
+  function setProject(np) { p = Core.normalize(np); state = { view: steps()[0][0], respId: null, personId: null }; store(); render(); }
+  function openText(text) {
+    var d; try { d = JSON.parse(text); } catch (e) { toast('That file could not be read.'); return; }
+    if (d && d.kind === 'oca-response') {
+      if (p.mode) { toast('Open your project first, then open this file.'); return; }
+      if (Core.mergeResponse(p, d)) { store(); render(); toast('Answers added for ' + (d.respondent.name || 'respondent') + '.'); } else toast('This file belongs to a different project.');
+    } else if (d && d.kind === 'oca-person-response') {
+      if (p.mode) { toast('Open your project first, then open this file.'); return; }
+      if (Core.mergePerson(p, d)) { store(); render(); toast('Answers added for ' + (d.person.name || 'person') + '.'); } else toast('This file belongs to a different project.');
+    } else if (d && d.kind === 'oca-project') {
+      var go = function () { setProject(d); toast(d.mode ? 'File opened. Answer, then save and send it back.' : 'Project opened.'); };
+      if (!p.mode && (p.respondents.length || p.team.name)) confirmBox('Opening this file replaces the project now on screen. Save it first if you need it. Continue?', go); else go();
+    } else toast('That is not an Open Culture Analysis file.');
+  }
+  var A = {
+    saveFile: function () {
+      if (p.mode === 'respondent') exportFile(slug(p.team.name) + '-answers-' + slug(p.respondents[0].name || 'me') + '.json', JSON.stringify(Core.respondentResponse(p), null, 1), 'application/json');
+      else if (p.mode === 'person') exportFile(slug(p.team.name) + '-my-answers.json', JSON.stringify(Core.personResponse(p), null, 1), 'application/json');
+      else exportFile(slug(p.team.name) + '.json', JSON.stringify(p, null, 1), 'application/json');
+    },
+    openFile: function () { $('file').value = ''; $('file').click(); },
+    example: function () { var go = function () { setProject(exampleProject()); toast('Example loaded.'); }; if (p.mode || p.respondents.length || p.team.name) confirmBox('Loading the example replaces what is on screen. Continue?', go); else go(); },
+    newProject: function () { confirmBox('Start a new, empty project? Save the current one first if you need it.', function () { try { localStorage.removeItem(PKEY); } catch (e) {} setProject(Core.blank()); }); },
+    closeModal: closeModal,
+    confirmYes: function () { closeModal(); if (pendingYes) { var f = pendingYes; pendingYes = null; f(); } },
+    copyExport: function () { var t = $('exportText'); t.select(); try { document.execCommand('copy'); toast('Copied.'); } catch (e) {} },
+    print: function () { window.print(); },
+    addResp: function () { var r = { id: Core.rid(), name: '', free: {}, ratings: {} }; p.respondents.push(r); state.respId = r.id; },
+    delResp: function (el) { var id = el.dataset.id; confirmBox('Remove this person and their answers?', function () { p.respondents = p.respondents.filter(function (r) { return r.id !== id; }); store(); render(); }); return false; },
+    packet: function (el) {
+      var round = Number(el.dataset.round), pk = Core.respondentPacket(p, el.dataset.id, round);
+      exportFile(slug(p.team.name) + (round === 2 ? '-ratings-' : '-free-list-') + slug(pk.respondents[0].name || 'person') + '.json', JSON.stringify(pk, null, 1), 'application/json'); return false;
+    },
+    phraseItem: function (el) { var it = Core.addItem(p, el.dataset.group, el.dataset.phrase, 'free list'); toast('Added as ' + it.code + '. Edit the wording at the Items step.'); },
+    addItem: function () { Core.addItem(p, 'Habits', '', 'added'); },
+    delItem: function (el) { var id = el.dataset.id; confirmBox('Remove this item and any ratings for it?', function () { p.items = p.items.filter(function (it) { return it.id !== id; }); delete p.workshop[id]; p.respondents.forEach(function (r) { delete r.ratings[id]; }); p.people.forEach(function (r) { delete r.ratings[id]; }); store(); render(); }); return false; },
+    acceptAgreed: function () { var n = 0; p.items.forEach(function (it) { var w = p.workshop[it.id] = p.workshop[it.id] || {}; if (!w.decision && Core.itemStats(p, it).group === 'Agreed') { w.decision = 'accept'; n++; } }); toast(n + ' item' + (n === 1 ? '' : 's') + ' accepted.'); },
+    addPerson: function () { var r = { id: Core.rid(), name: '', role: 'Candidate', ratings: {} }; p.people.push(r); state.personId = r.id; },
+    delPerson: function (el) { var id = el.dataset.id; confirmBox('Remove this person and their answers?', function () { p.people = p.people.filter(function (r) { return r.id !== id; }); store(); render(); }); return false; },
+    personPacket: function (el) { var pk = Core.personPacket(p, el.dataset.id); exportFile(slug(p.team.name) + '-form-' + slug(pk.people[0].name || 'person') + '.json', JSON.stringify(pk, null, 1), 'application/json'); return false; }
+  };
+  document.addEventListener('click', function (e) {
+    var v = e.target.closest('[data-view]'); if (v) { state.view = v.dataset.view; render(); window.scrollTo(0, 0); return; }
+    var a = e.target.closest('[data-act]'); if (!a) { if (e.target.id === 'modal') closeModal(); return; }
+    var fn = A[a.dataset.act]; if (!fn) return;
+    var silent = ['saveFile', 'openFile', 'example', 'newProject', 'closeModal', 'confirmYes', 'copyExport', 'print'].indexOf(a.dataset.act) >= 0;
+    if (fn(a) === false || silent) return;
+    store(); render();
+  });
+  // Text fields save as you type, without redrawing, so the cursor stays put.
+  document.addEventListener('input', function (e) {
+    var d = e.target.dataset; if (!d) return;
+    if (d.team) { p.team[d.team] = e.target.value; if (d.team === 'name') $('teamName').textContent = e.target.value; }
+    else if (d.name) { var k = d.name.split(':'), r = byId(k[0] === 'resp' ? p.respondents : p.people, k[1]); if (r) r.name = e.target.value; }
+    else if (d.free) { var f = d.free.split(':'), rr = byId(p.respondents, f[0]); if (rr) rr.free[f[1]] = e.target.value; progress(); }
+    else if (d.item && e.target.tagName === 'TEXTAREA') { var i = d.item.split(':'), it = byId(p.items, i[0]); if (it) it[i[1]] = e.target.value; }
+    else if (d.ws && e.target.tagName !== 'SELECT') { var w = d.ws.split(':'), o = p.workshop[w[0]] = p.workshop[w[0]] || {}; if (w[1] === 'answer') { var n = parseFloat(e.target.value); o.answer = isNaN(n) ? null : Math.max(1, Math.min(5, n)); } else o[w[1]] = e.target.value; }
+    else return;
+    store();
+  });
+  document.addEventListener('change', function (e) {
+    var d = e.target.dataset, t = e.target; if (!d) return;
+    if (t.id === 'file') { var file = t.files[0]; if (!file) return; var rd = new FileReader(); rd.onload = function () { openText(String(rd.result)); }; rd.readAsText(file); return; }
+    if (d.pick) { if (d.pick === 'resp') state.respId = t.value; else state.personId = t.value; render(); return; }
+    if (d.rate) { var a = d.rate.split(':'), r = byId(p.respondents, a[0]); if (r) { if (t.value === '') delete r.ratings[a[1]]; else r.ratings[a[1]] = Number(t.value); } store(); progress(); return; }
+    if (d.prate) { var b = d.prate.split(':'), q = byId(p.people, b[0]); if (q) { if (t.value === '') delete q.ratings[b[1]]; else q.ratings[b[1]] = Number(t.value); } store(); if (p.mode) progress(); else render(); return; }
+    if (d.set) { var n = parseFloat(t.value); if (!isNaN(n)) p.settings[d.set] = Math.max(0, Math.min(100, n)); store(); return; }
+    if (d.item && t.tagName === 'SELECT') { var i = d.item.split(':'), it = byId(p.items, i[0]); if (it) it[i[1]] = t.value; store(); render(); return; }
+    if (d.role) { var pr = byId(p.people, d.role); if (pr) pr.role = t.value; store(); return; }
+    if (d.ws && t.tagName === 'SELECT') { var w = d.ws.split(':'), o = p.workshop[w[0]] = p.workshop[w[0]] || {}; o[w[1]] = t.value; if (w[1] === 'decision' && t.value !== 'accept') o.form4 = false; store(); if (w[1] === 'decision') render(); return; }
+    if (d.f4) { var o4 = p.workshop[d.f4] = p.workshop[d.f4] || {}; o4.form4 = t.checked; store(); render(); return; }
+    // Text and number fields are saved by the input handler and never redraw the page here: a redraw on
+    // blur would replace the button the person is in the middle of clicking.
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  p = load() || Core.blank();
+  render();
+})();
+</script>
+</body>
+</html>
